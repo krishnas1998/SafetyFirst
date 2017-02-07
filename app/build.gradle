@@ -9,16 +9,16 @@ android {
         applicationId "com.vikas.dtu.safetyfirst2"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 14
+        versionCode 15
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             zipAlignEnabled true
-            shrinkResources true
+            shrinkResources false
         }
     }
 
@@ -68,7 +68,7 @@ dependencies {
     compile 'com.google.firebase:firebase-invites:9.4.0'
     compile 'com.google.firebase:firebase-common:9.4.0'
     compile 'com.google.firebase:firebase-config:9.4.0'
-
+    compile 'com.commonsware.cwac:richedit:0.5.+'
 
 
    // compile 'com.facebook.android:facebook-android-sdk:[4,5)'

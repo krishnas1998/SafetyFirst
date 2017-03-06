@@ -5,31 +5,53 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.vikas.dtu.safetyfirst2.BaseActivity;
 import com.vikas.dtu.safetyfirst2.CategoryAdapter;
 import com.vikas.dtu.safetyfirst2.NotificationService;
 import com.vikas.dtu.safetyfirst2.R;
+import com.vikas.dtu.safetyfirst2.mData.User;
 import com.vikas.dtu.safetyfirst2.mSignUp.SignInActivity;
+
+import static com.vikas.dtu.safetyfirst2.mUtils.FirebaseUtil.getCurrentUserId;
 
 public class DiscussionActivity extends BaseActivity {
 
-    private static final String TAG = "NewsActivity";
+    private static final String TAG = "DiscussionActivity";
+    private ProgressBar progress;
 
     private  CategoryAdapter mAdapter;
     private static ViewPager mViewPager; // static so that it can be changed within fragments
 
     private final int[] tabIcons =  {
-            R.drawable.ic_group_black_24dp,
-            R.drawable.ic_home_black_24dp,
-            R.drawable.ic_bookmark_black_24dp,
-            R.drawable.ic_border_color_black_24dp};
+
+            R.drawable.disc_forum_1_ic_forum_white_24dp,
+            R.drawable.disc_forum_2_ic_home_white_24dp,
+            R.drawable.disc_forum_3_ic_account_circle_white_24dp,
+            R.drawable.disc_forum_4_ic_edit_white_24dp};
+/*
+            R.drawable.ic_forum_white_24dp,
+            R.drawable.ic_help_white_24dp,
+            R.drawable.ic_account_circle_white_24dp,
+            R.drawable.ic_border_color_black_24dp};*/
+
     private TabLayout tabLayout;
 
     @Override
@@ -86,14 +108,26 @@ public class DiscussionActivity extends BaseActivity {
                 startActivity(new Intent(DiscussionActivity.this, NewPostActivity.class));
             }
         }); */
+        progress = (ProgressBar) findViewById(R.id.progressBar);
         mViewPager = (ViewPager) findViewById(R.id.pager);
-        mAdapter = new CategoryAdapter(DiscussionActivity.this ,getSupportFragmentManager());
-        mViewPager.setAdapter(mAdapter);
-        tabLayout = (TabLayout)findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
-        setupTabIcons();
+        DatabaseReference mUserRef= FirebaseDatabase.getInstance().getReference().child("users").child(getCurrentUserId());
+        mUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                mAdapter = new CategoryAdapter(DiscussionActivity.this ,getSupportFragmentManager(), user);
+                mViewPager.setAdapter(mAdapter);
+                tabLayout = (TabLayout)findViewById(R.id.tabs);
+                tabLayout.setupWithViewPager(mViewPager);
+                setupTabIcons();
+                progress.setVisibility(View.GONE);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(DiscussionActivity.this, "Error Loading User", Toast.LENGTH_LONG).show();
+            }
+        });
     }
-
     private void setupTabIcons() {
         tabLayout.getTabAt(0).setIcon(tabIcons[0]);
         tabLayout.getTabAt(1).setIcon(tabIcons[1]);
@@ -105,16 +139,33 @@ public class DiscussionActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        // Search Menu
-        //final MenuItem searchPost = menu.findItem(R.id.search_post);
-        // Associate searchable configuration with the SearchView
-        SearchManager searchManager =
-                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView =
-                (SearchView) menu.findItem(R.id.search_post).getActionView();
-        searchView.setSearchableInfo(
-                searchManager.getSearchableInfo(getComponentName()));
+        final MenuItem searchPost = menu.findItem(R.id.search_post);
+        SearchView searchView = null;
+        if (searchPost != null) {
+            searchView = (SearchView) MenuItemCompat.getActionView(searchPost);
+        }
+        EditText searchPlate = (EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+        searchPlate.setHint("Search Posts");
+        View searchPlateView = searchView.findViewById(android.support.v7.appcompat.R.id.search_plate);
+        searchPlateView.setBackgroundColor(ContextCompat.getColor(this, android.R.color.transparent));
 
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Intent searchIntent = new Intent(getApplicationContext(),SearchActivity.class);
+                searchIntent.putExtra("search_query",query);
+                startActivity(searchIntent);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // use this method for auto complete search process
+                return false;
+            }
+        });
+
+        //
         return true;
     }
 

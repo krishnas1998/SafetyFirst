@@ -30,6 +30,7 @@ public class KnowItThird extends AppCompatActivity {
     int position;
     ListView thirdList;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

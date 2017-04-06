@@ -43,7 +43,7 @@ public abstract class NewsListFragment extends Fragment {
 
     private ProgressBar mProgressBar;
     private NewsRecyclerAdapter mrecycleradapter;
-//    private FirebaseRecyclerAdapter<News, NewsViewHolder> mAdapter;
+    //    private FirebaseRecyclerAdapter<News, NewsViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private ProgressBar mpaginateprogbar;
     private LinearLayoutManager mManager;
@@ -160,12 +160,26 @@ public abstract class NewsListFragment extends Fragment {
 
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    String changedkey=dataSnapshot.getKey();
+                    News changednews=dataSnapshot.getValue(News.class);
+                    int changedindex=newsArrayKey.indexOf(changedkey);
+                    if(changedindex > -1){
+                        newsArrayList.set(changedindex,changednews);
+                        newsArrayKey.set(changedindex,changedkey);
+                        notifyItemChanged(changedindex);
+                    }
 
                 }
 
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                    String changedkey=dataSnapshot.getKey();
+                    int changedindex=newsArrayKey.indexOf(changedkey);
+                    if(changedindex > -1){
+                        newsArrayList.remove(changedindex);
+                        newsArrayKey.remove(changedindex);
+                        notifyItemRemoved(changedindex);
+                    }
                 }
 
                 @Override
@@ -212,12 +226,26 @@ public abstract class NewsListFragment extends Fragment {
 
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    String changedkey=dataSnapshot.getKey();
+                    News changednews=dataSnapshot.getValue(News.class);
+                    int changedindex=newsArrayKey.indexOf(changedkey);
+                    if(changedindex > -1){
+                        newsArrayList.set(changedindex,changednews);
+                        newsArrayKey.set(changedindex,changedkey);
+                        notifyItemChanged(changedindex);
+                    }
 
                 }
 
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                    String changedkey=dataSnapshot.getKey();
+                    int changedindex=newsArrayKey.indexOf(changedkey);
+                    if(changedindex > -1){
+                        newsArrayList.remove(changedindex);
+                        newsArrayKey.remove(changedindex);
+                        notifyItemRemoved(changedindex);
+                    }
                 }
 
                 @Override

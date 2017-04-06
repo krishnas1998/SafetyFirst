@@ -1,22 +1,15 @@
 package com.vikas.dtu.safetyfirst2.mKnowIt;
 
-import android.app.Activity;
-import android.app.Dialog;
-import android.app.ProgressDialog;
+
 import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.LayerDrawable;
-import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -28,6 +21,7 @@ import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Xml;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,6 +41,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.vikas.dtu.safetyfirst2.R;
+import com.vikas.dtu.safetyfirst2.VideoWebViewActivity;
 import com.vikas.dtu.safetyfirst2.mLaws.StateLaws.Checkforpermission;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -79,7 +74,7 @@ public class KnowItFourth extends AppCompatActivity {
     private String info;
     private String howto;
     //private String checklist = "http://www.ehsdb.com/resources/Aerial_lift/Articulating%20Boom%20Lift.pdf";
-   // private String videoLink = "https://www.youtube.com/embed/OGZOX2f2Yrc";
+    // private String videoLink = "https://www.youtube.com/embed/OGZOX2f2Yrc";
     private String checklist = "no";
     private String videoLink = "no";
     private String noLink = "no";
@@ -163,10 +158,10 @@ public class KnowItFourth extends AppCompatActivity {
         imageView.setImageDrawable(image);
         infoTxt.setText(info);
         //if(howto!="no") {
-            howtoTxt.setText(howto);
+        howtoTxt.setText(howto);
         //}
         //else{
-          //  howtoTxt.setText("NOT YET AVAILABLE");
+        //  howtoTxt.setText("NOT YET AVAILABLE");
         //}
         heading.setText("INFORMATION");
 
@@ -213,7 +208,7 @@ public class KnowItFourth extends AppCompatActivity {
                     videoBtn.setBackground(redBG);
                     heading.setText("SAFETY CHECKLIST");
                     if(Checkforpermission.CheckforPermissions(KnowItFourth.this)){
-                    showFile(checklist);}
+                        showFile(checklist);}
                     else{
                         Checkforpermission.requestpermission(KnowItFourth.this,1);
                     }
@@ -400,53 +395,93 @@ public class KnowItFourth extends AppCompatActivity {
     public void showVideo(String url) {
         if (url != null&&url!="no") {
 
-            status.setText("Video Available");
-            AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.setTitle(title);
+            if(isNetworkStatusAvailable (getApplicationContext())) {
+                // Toast.makeText(getApplicationContext(), "Playing Video", Toast.LENGTH_SHORT).show();
 
-            String frameVideo = "<html><body><iframe width=\"312\" height=\"200\" src=\""+url+"\" frameborder=\"0\" allowfullscreen></iframe></body></html>";
-            Log.d("Video1",frameVideo);
-            final WebView wv = new WebView(this);
-            //   wv.loadUrl(url);
-            wv.setWebViewClient(new WebViewClient() {
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    return false;
-                }
-            });
 
-            WebSettings webSettings = wv.getSettings();
-            webSettings.setJavaScriptEnabled(true);
-            wv.loadData(frameVideo, "text/html", "utf-8");
-            alert.setView(wv);
-            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialogInterface) {
-                    wv.setVisibility(View.GONE);
-                    wv.loadUrl("https://www.google.co.in/");
-                }
-            });
-            alert.setNegativeButton("Close", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int id) {
-                    wv.setVisibility(View.GONE);
-                    wv.loadUrl("https://www.google.co.in/");
-                    dialog.dismiss();
-                }
-            });
-            alert.show();
 
+//            status.setText("Video Available");
+//            Display display=getWindowManager().getDefaultDisplay();
+//            Point point=new Point();
+//            display.getSize(point);
+//            int Screenwidth=point.x;
+//            int ScreenHeght=point.y;
+//            float density  = getResources().getDisplayMetrics().density;
+//            float dpHeight = ScreenHeght / density;
+//            float dpWidth  = Screenwidth / density;
+//            int nav_height=getNavigationBarHeight(KnowItFourth.this);
+//            float nav_dp_height=nav_height / density;
+//
+//            Log.d("tag001",String.valueOf(dpHeight));
+//            Log.d("tag001",String.valueOf(dpWidth));
+//
+//
+//
+////            String frameVideo = "<html><body><iframe width=\""+String.valueOf(dpHeight-10)+"\" height=\""+String.valueOf(dpWidth-nav_dp_height)+"\" src=\""+url+"\" frameborder=\"0\" allowfullscreen></iframe></body></html>";
+//
+//            Log.d("Video1",frameVideo);
+                Intent intent=new Intent(KnowItFourth.this,VideoWebViewActivity.class);
+                intent.putExtra("videostring",url);
+                startActivity(intent);
+//            final WebView wv = new WebView(this);
+//            //   wv.loadUrl(url);
+//            wv.setWebViewClient(new WebViewClient() {
+//                @Override
+//                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                    return false;
+//                }
+//
+//                @Override
+//                public void onPageFinished(WebView view, String url) {
+//                    super.onPageFinished(view, url);
+//
+//                }
+//            });
+//
+//            WebSettings webSettings = wv.getSettings();
+//            webSettings.setJavaScriptEnabled(true);
+//            wv.loadData(frameVideo, "text/html", "utf-8");
+//            setContentView(wv);
+//
+//            wv.setBackgroundColor(getResources().getColor(R.color.black));
+//
+//            android.support.v7.app.ActionBar actionBar = this.getSupportActionBar();
+//            actionBar.hide();
+//            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+//            alert.setView(wv);
+//            alert.setTitle(title);
+
+
+//
+//            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//                @Override
+//                public void onCancel(DialogInterface dialogInterface) {
+//                    wv.setVisibility(View.GONE);
+//                    wv.loadUrl("https://www.google.co.in/");
+//                }
+//            });
+//            alert.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int id) {
+//                    wv.setVisibility(View.GONE);
+//                    wv.loadUrl("https://www.google.co.in/");
+//                    dialog.dismiss();
+//                }
+//            });
+//            AlertDialog alertDialog=alert.create();
+//            alertDialog.getWindow().setLayout(Screenwidth,ScreenHeght);
+//            alertDialog.show();
+//            alert.show();
+
+            } else {
+                Toast.makeText(getApplicationContext(), "Check your internet connection", Toast.LENGTH_SHORT).show();
+                status.setText("Video Available. Check your Internet connection");
+            }
         } else {
+
             status.setText("Video Not Available");
             watchAgain.setVisibility(View.GONE);
             Toast.makeText(this, "Video Not Available", Toast.LENGTH_SHORT).show();
-        }
-
-        if(isNetworkStatusAvailable (getApplicationContext())) {
-           // Toast.makeText(getApplicationContext(), "Playing Video", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplicationContext(), "Check your internet connection", Toast.LENGTH_SHORT).show();
-            status.setText("Video Available. Check your Internet connection");
 
         }
     }
@@ -462,6 +497,7 @@ public class KnowItFourth extends AppCompatActivity {
         }
         return false;
     }
+
 
     public void clickWatchAgain(View v){
         showVideo(videoLink);
@@ -611,7 +647,7 @@ public class KnowItFourth extends AppCompatActivity {
         all[5][0] = "https://www.youtube.com/embed/tcsdVup8NzA";
         //all[5][1] = "https://www.youtube.com/embed/sWuOBu3GjHw&feature=youtu.be";
         all[5][1] = "https://www.youtube.com/watch?v=sWuOBu3GjHw";
-       // all[5][2] = "https://www.youtube.com/embed/sWuOBu3GjHw&feature=youtu.be";
+        // all[5][2] = "https://www.youtube.com/embed/sWuOBu3GjHw&feature=youtu.be";
         all[5][2] = "https://www.youtube.com/embed/jNggabGSvvs";
         all[5][3] = "no";
         all[5][4] = "https://www.youtube.com/embed/isv6O-FIj8c";
@@ -629,7 +665,7 @@ public class KnowItFourth extends AppCompatActivity {
         all[7][0] = "no";
         all[7][1] = "no";
         all[7][2] = "https://www.youtube.com/embed/MFJ4FNy1qWU";
-      //  all[7][2] = "https://www.youtube.com/embed/56NZrk183BI";
+        //  all[7][2] = "https://www.youtube.com/embed/56NZrk183BI";
         all[7][3] = "https://www.youtube.com/embed/56NZrk183BI";
         all[7][4] = "no"; //5
         all[7][5] = "no";

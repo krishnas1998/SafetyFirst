@@ -286,6 +286,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vikas.dtu.safetyfirst2.DynamicDashboardNav" />
         </activity>
+        <activity android:name=".VideoWebViewActivity"
+            android:screenOrientation="landscape"/>
     </application>
 
 </manifest>

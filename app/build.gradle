@@ -44,6 +44,7 @@ dependencies {
 
     // compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile 'com.github.deano2390:MaterialShowcaseView:1.1.0'
+    compile 'com.github.bluejamesbond:textjustify-android:2.1.0'
     compile 'me.biubiubiu.justifytext:library:1.1'
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support:design:25.2.0'

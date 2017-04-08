@@ -43,7 +43,7 @@ public class DiscussionActivity extends BaseActivity implements View.OnClickList
     private static final String TAG = "DiscussionActivity";
     private ProgressBar progress;
     private TabItem tabItem1, tabItem2, tabItem3, tabItem4;
-    private static final String SHOWCASE_ID = "sequence example";
+    public final String SHOWCASE_ID = "sequence";
 
     private  CategoryAdapter mAdapter;
     private static ViewPager mViewPager; // static so that it can be changed within fragments
@@ -231,7 +231,7 @@ public class DiscussionActivity extends BaseActivity implements View.OnClickList
                 .setTarget(tabLayout)
                 .setContentText("This is Discussion Section \n1. Main Discussion Section\n2. Your Posts \n3. Profile \n4. Write new Post")
                 .setFadeDuration(1000)
-                .setDismissOnTouch(true)
+                .setDismissText("GOT IT")
                 .setContentTextColor(getResources().getColor(R.color.white))
                 .setMaskColour(getResources().getColor(R.color.dark_blue))
                 .setDelay(withDelay) // optional but starting animations immediately in onCreate can make them choppy

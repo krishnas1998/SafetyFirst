@@ -64,6 +64,7 @@ import java.util.HashMap;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 public class DynamicDashboardNav extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -77,6 +78,7 @@ public class DynamicDashboardNav extends BaseActivity
     private ImageView mKnowItImageView;
     private ImageView mLawsImageView;
     private SliderLayout mDemoSlider;
+    public final String SHOWCASE_ID = "sequence example";
 
     private static final String IMAGE_1 = "image1";
     private static final String IMAGE_2 = "image2";
@@ -132,6 +134,7 @@ public class DynamicDashboardNav extends BaseActivity
                 return false;
             }
         });
+
         findViewById(R.id.imageView5).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -543,16 +546,32 @@ public class DynamicDashboardNav extends BaseActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.dynamic_dashboard_menu, menu);
+        View view = findViewById(R.id.notification);
+
         final MenuItem item = menu.findItem(R.id.notification);
         View v = item.getActionView();
+        new MaterialShowcaseView.Builder(DynamicDashboardNav.this)
+                .setTarget(v)
+                .setShapePadding(96)
+                .setDismissText("GOT IT")
+                .singleUse(SHOWCASE_ID)
+                .setContentText("You will get all your Notifications here")
+                .setContentTextColor(getResources().getColor(R.color.white))
+                .setMaskColour(getResources().getColor(R.color.dark_blue))
+                .show();
+
+
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 onOptionsItemSelected(item);
             }
         });
         unreadCountText = (TextView) v.findViewById(R.id.unread_count);
         setUnreadCountText();
+
+
         return true;
     }
 
@@ -560,7 +579,8 @@ public class DynamicDashboardNav extends BaseActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.notification:
-                Intent intent = new Intent(this, NotificationActivity.class);
+
+               Intent intent = new Intent(this, NotificationActivity.class);
                 startActivity(intent);
                 break;
             default:

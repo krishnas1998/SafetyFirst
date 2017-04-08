@@ -22,7 +22,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import me.biubiubiu.justifytext.library.JustifyTextView;
 
 public class NewsDetailActivity extends BaseActivity implements View.OnClickListener {
 
@@ -68,7 +67,7 @@ public class NewsDetailActivity extends BaseActivity implements View.OnClickList
         // Initialize Views
 
         mTitleView = (TextView) findViewById(R.id.post_title);
-        mBodyView = (JustifyTextView) findViewById(R.id.post_body);
+        mBodyView = (TextView) findViewById(R.id.post_body);
         mReadMore = (TextView) findViewById(R.id.readMore);
         mNewsImage = (ImageView) findViewById(R.id.news_photo);
 
@@ -93,11 +92,7 @@ public class NewsDetailActivity extends BaseActivity implements View.OnClickList
 //                mAuthorView.setText(news.author);
                 HEADLINE = news.title;
                 mTitleView.setText(news.title);
-                StringBuilder body = new StringBuilder();
-                body.append(" ");
-                body.append(news.body);
-                String body1 = body.toString();
-                mBodyView.setText(new SpannableString(news.body));
+                mBodyView.setText(news.body);
                 url = news.author;
                 if(news.imgUrl!=null){
                     PicassoClient.downloadImage(getApplicationContext(), news.imgUrl, mNewsImage);

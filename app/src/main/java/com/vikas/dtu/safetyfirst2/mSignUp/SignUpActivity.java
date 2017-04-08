@@ -1,6 +1,9 @@
 package com.vikas.dtu.safetyfirst2.mSignUp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -89,14 +92,14 @@ public class SignUpActivity extends BaseActivity implements GoogleApiClient.OnCo
 
         mGoogleSignInButton.setOnClickListener(this);
 
-            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(getString(R.string.default_web_client_id))
-                    .requestEmail()
-                    .build();
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
-                    .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                    .build();
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
         // Initialize FirebaseAuth
     }
@@ -109,46 +112,57 @@ public class SignUpActivity extends BaseActivity implements GoogleApiClient.OnCo
             tncFlag = 0;
         }
     }
+    public static boolean isNetworkStatusAvailable (Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null)
+        {
+            NetworkInfo netInfos = connectivityManager.getActiveNetworkInfo();
+            if(netInfos != null)
+                if(netInfos.isConnected())
+                    return true;
+        }
+        return false;
+    }
 
     public void clickTnc(View v){
         startActivity(new Intent(SignUpActivity.this, TermsnCondition.class));
     }
 
     private void signUp() {
-            Log.d(TAG, "signUp");
-            if (!validateForm()) {
-                return;
-            }
+        Log.d(TAG, "signUp");
+        if (!validateForm()) {
+            return;
+        }
 
-            showProgressDialog();
-            String email = mEmailField.getText().toString();
-            String password = mPasswordField.getText().toString();
-            String confirmPassword = mConfirmPasswordField.getText().toString();
+        showProgressDialog();
+        String email = mEmailField.getText().toString();
+        String password = mPasswordField.getText().toString();
+        String confirmPassword = mConfirmPasswordField.getText().toString();
 
-            if (password.equals(confirmPassword)) {
-                if (password.length() < 6) {
-                    Toast.makeText(SignUpActivity.this, "Password length should be atleast 6", Toast.LENGTH_SHORT).show();
-                } else {
-                    mFirebaseAuth.createUserWithEmailAndPassword(email, password)
-                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    Log.d(TAG, "createUser:onComplete:" + task.isSuccessful());
-                                    hideProgressDialog();
-
-                                    if (task.isSuccessful()) {
-                                        onAuthSuccess(task.getResult().getUser());
-                                    } else {
-                                        Toast.makeText(SignUpActivity.this, "Sign Up Failed",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
-                }
+        if (password.equals(confirmPassword)) {
+            if (password.length() < 6) {
+                Toast.makeText(SignUpActivity.this, "Password length should be atleast 6", Toast.LENGTH_SHORT).show();
             } else {
-                hideProgressDialog();
-                Toast.makeText(SignUpActivity.this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+                mFirebaseAuth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                Log.d(TAG, "createUser:onComplete:" + task.isSuccessful());
+                                hideProgressDialog();
+
+                                if (task.isSuccessful()) {
+                                    onAuthSuccess(task.getResult().getUser());
+                                } else {
+                                    Toast.makeText(SignUpActivity.this, "Sign Up Failed",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
             }
+        } else {
+            hideProgressDialog();
+            Toast.makeText(SignUpActivity.this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void onAuthSuccess(FirebaseUser user) {
@@ -228,7 +242,12 @@ public class SignUpActivity extends BaseActivity implements GoogleApiClient.OnCo
         int i = v.getId();
         if (i == R.id.btn_signup) {
             if(tncFlag==1){
-                signUp();
+                if(isNetworkStatusAvailable(SignUpActivity.this)){
+                    signUp();
+                }else{
+                    Toast.makeText(SignUpActivity.this,"Please check your Internet Connection!!",Toast.LENGTH_SHORT).show();
+                }
+
             }
             else{
                 Toast.makeText(this, "Agree to Terms and Conditions.", Toast.LENGTH_SHORT).show();
@@ -239,7 +258,11 @@ public class SignUpActivity extends BaseActivity implements GoogleApiClient.OnCo
         }
         else  if (i == R.id.sign_in_button) {
             if(tncFlag==1){
-                googleSignIn();
+                if(isNetworkStatusAvailable(SignUpActivity.this)){
+                    googleSignIn();}
+                else{
+                    Toast.makeText(SignUpActivity.this,"Please check your Internet Connection!!",Toast.LENGTH_SHORT).show();
+                }
             }
             else{
                 Toast.makeText(this, "Agree to Terms and Conditions.", Toast.LENGTH_SHORT).show();

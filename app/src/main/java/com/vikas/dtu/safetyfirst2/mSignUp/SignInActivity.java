@@ -1,6 +1,9 @@
 package com.vikas.dtu.safetyfirst2.mSignUp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -118,7 +121,7 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
 
 
 
-       mAuthListener = new FirebaseAuth.AuthStateListener() {
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
@@ -147,16 +150,20 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sign_in_button:
-                    signin = true;
-                    googleSignIn();
+                signin = true;
+                if(isNetworkStatusAvailable(SignInActivity.this)){
+                    googleSignIn();}
+                else{
+                    Toast.makeText(SignInActivity.this,"Please check your Internet Connection!!",Toast.LENGTH_SHORT).show();
+                }
 
                 break;
             case R.id.link_signup:
-                {
-                    startActivity(new Intent(SignInActivity.this, SignUpActivity.class));
-                    finish();
-                }
-                break;
+            {
+                startActivity(new Intent(SignInActivity.this, SignUpActivity.class));
+                finish();
+            }
+            break;
             case R.id.button_sign_in:
                 signIn();
                 break;
@@ -225,7 +232,17 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
 
         return result;
     }
-
+    public static boolean isNetworkStatusAvailable (Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null)
+        {
+            NetworkInfo netInfos = connectivityManager.getActiveNetworkInfo();
+            if(netInfos != null)
+                if(netInfos.isConnected())
+                    return true;
+        }
+        return false;
+    }
 
     private void googleSignIn() {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -275,8 +292,8 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
     @Override
     public void onBackPressed() {
         if(signin==true)
-        Toast.makeText(this, "You must sign in first",
-                Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "You must sign in first",
+                    Toast.LENGTH_LONG).show();
 
         else
             super.onBackPressed();

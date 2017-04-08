@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
+import android.text.SpannableString;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -20,6 +21,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import me.biubiubiu.justifytext.library.JustifyTextView;
 
 public class NewsDetailActivity extends BaseActivity implements View.OnClickListener {
 
@@ -65,7 +68,7 @@ public class NewsDetailActivity extends BaseActivity implements View.OnClickList
         // Initialize Views
 
         mTitleView = (TextView) findViewById(R.id.post_title);
-        mBodyView = (TextView) findViewById(R.id.post_body);
+        mBodyView = (JustifyTextView) findViewById(R.id.post_body);
         mReadMore = (TextView) findViewById(R.id.readMore);
         mNewsImage = (ImageView) findViewById(R.id.news_photo);
 
@@ -90,7 +93,11 @@ public class NewsDetailActivity extends BaseActivity implements View.OnClickList
 //                mAuthorView.setText(news.author);
                 HEADLINE = news.title;
                 mTitleView.setText(news.title);
-                mBodyView.setText(news.body);
+                StringBuilder body = new StringBuilder();
+                body.append(" ");
+                body.append(news.body);
+                String body1 = body.toString();
+                mBodyView.setText(new SpannableString(news.body));
                 url = news.author;
                 if(news.imgUrl!=null){
                     PicassoClient.downloadImage(getApplicationContext(), news.imgUrl, mNewsImage);

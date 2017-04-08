@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
 
         android:layout_alignParentLeft="true" />
-    <TextView
+    <me.biubiubiu.justifytext.library.JustifyTextView
         android:id="@+id/post_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

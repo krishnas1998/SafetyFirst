@@ -22,7 +22,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-
 public class NewsDetailActivity extends BaseActivity implements View.OnClickListener {
 
     private static final String TAG = "NewsDetailActivity";
@@ -67,7 +66,7 @@ public class NewsDetailActivity extends BaseActivity implements View.OnClickList
         // Initialize Views
 
         mTitleView = (TextView) findViewById(R.id.post_title);
-        mBodyView = (TextView) findViewById(R.id.post_body);
+        mBodyView = (JustifyTextView) findViewById(R.id.post_body);
         mReadMore = (TextView) findViewById(R.id.readMore);
         mNewsImage = (ImageView) findViewById(R.id.news_photo);
 

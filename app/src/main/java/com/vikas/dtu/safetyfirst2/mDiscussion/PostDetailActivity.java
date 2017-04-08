@@ -57,6 +57,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.vikas.dtu.safetyfirst2.mNotification.NotificationObject;
 import com.vikas.dtu.safetyfirst2.mWebview.WebViewActivity;
 import com.vikas.dtu.safetyfirst2.model.PostNotify;
 
@@ -78,6 +79,8 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.ParserConfigurationException;
 
 import io.realm.Realm;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 
 public class PostDetailActivity extends BaseActivity implements View.OnClickListener {
 
@@ -227,6 +230,20 @@ public class PostDetailActivity extends BaseActivity implements View.OnClickList
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
                 post = dataSnapshot.getValue(Post.class);
+
+                if(post == null){
+                    new AlertDialog.Builder(PostDetailActivity.this)
+                            .setMessage("Post was deleted!")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    PostDetailActivity.this.finish();
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                    return;
+                }
+
                 // [START_EXCLUDE]
                 if (post.getPhotoUrl() == null) {
                     mAuthorImage.setImageDrawable(ContextCompat.getDrawable(getBaseContext(),
@@ -434,7 +451,7 @@ public class PostDetailActivity extends BaseActivity implements View.OnClickList
 
     }
 
-    private static class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
+    private class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
 
         private Context mContext;
         private DatabaseReference mDatabaseReference;
@@ -609,6 +626,15 @@ public class PostDetailActivity extends BaseActivity implements View.OnClickList
             if(comment.image != null){
                 holder.commentImage.setVisibility(View.VISIBLE);
                 Glide.with(mContext).load(comment.image).into(holder.commentImage);
+                holder.commentImage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent();
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.parse(comment.image), "image/*");
+                        startActivity(intent);
+                    }
+                });
             }
 
             holder.Upvoteview.setText(String.valueOf(comment.upvoteCount));
@@ -957,6 +983,15 @@ public class PostDetailActivity extends BaseActivity implements View.OnClickList
 
                                 FirebaseDatabase.getInstance().getReference().child("post-notify").child(mPostKey).removeValue();
                                 //Todo:  delete stuff from storage too
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        RealmQuery<NotificationObject> query = realm.where(NotificationObject.class);
+                                        RealmResults<NotificationObject> items = query.equalTo("type", NotificationObject.COMMENT_ON_POST)
+                                                                                        .equalTo("extraString", mPostKey).findAll();
+                                        items.deleteAllFromRealm();
+                                    }
+                                });
                                 finish();
                             }
                         });

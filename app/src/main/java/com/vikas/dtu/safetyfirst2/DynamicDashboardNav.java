@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -42,17 +44,26 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.vikas.dtu.safetyfirst2.mDiscussion.DiscussionActivity;
-import com.vikas.dtu.safetyfirst2.mIntro.MainIntroActivity;
 import com.vikas.dtu.safetyfirst2.mKnowIt.KnowItMain;
 import com.vikas.dtu.safetyfirst2.mLaws.ActivityLaws;
 import com.vikas.dtu.safetyfirst2.mNewsActivity.NewsActivity;
+import com.vikas.dtu.safetyfirst2.mNotification.MyFirebaseMessagingService;
+import com.vikas.dtu.safetyfirst2.mNotification.NotificationActivity;
+import com.vikas.dtu.safetyfirst2.mNotification.NotificationObject;
 import com.vikas.dtu.safetyfirst2.mSignUp.SignInActivity;
 import com.vikas.dtu.safetyfirst2.mUser.UpdateProfile;
 
 import java.util.HashMap;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class DynamicDashboardNav extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -90,11 +101,13 @@ public class DynamicDashboardNav extends BaseActivity
     private TextView emailProfile;
     private ProgressDialog mProgressDialog;
     private FirebaseAuth mAuth;
+    private TextView unreadCountText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dynamic_dashboard_nav);
+        FirebaseMessaging.getInstance().subscribeToTopic("all"); //To receive notifications from api
 
         mNewsImageView = (ImageView)findViewById(R.id.imageView4) ;
         mDiscussionImageView = (ImageView)findViewById(R.id.imageView5);
@@ -171,6 +184,7 @@ public class DynamicDashboardNav extends BaseActivity
         if (mFirebaseUser == null) {
             startActivity(new Intent(DynamicDashboardNav.this, SignInActivity.class));
             finish();
+            return;
         }
 
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -235,10 +249,26 @@ public class DynamicDashboardNav extends BaseActivity
         mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
 
         fetchDashboardSlides();
-
-
-
+        
+        setInstanceId();
+        FirebaseMessaging.getInstance().subscribeToTopic("all"); //To receive notifications from api
+        Log.e("Instance ID", FirebaseInstanceId.getInstance().getToken());
     }
+
+    private void setInstanceId() {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(getCurrentUser().getUid());
+        String instanceId = FirebaseInstanceId.getInstance().getToken();
+        userRef.child("instanceId").setValue(instanceId);
+        FirebaseMessaging.getInstance().subscribeToTopic("all");
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("instanceID", instanceId);
+        editor.apply();
+        Log.e("InstanceId", instanceId);
+    }
+
     private void fetchDashboardSlides(){
         long cacheExpiration = 3600;
 
@@ -336,7 +366,7 @@ public class DynamicDashboardNav extends BaseActivity
      }
      else if (id == R.id.log_out) {
          SignInActivity.signin = true;
-
+         clearNotifications();
          logout();
      } else if (id == R.id.nav_feedback) {
          startActivity(new Intent(DynamicDashboardNav.this, FeedBackActivity.class));
@@ -465,6 +495,7 @@ public class DynamicDashboardNav extends BaseActivity
             startActivity(new Intent(DynamicDashboardNav.this, SignInActivity.class));
             finish();
         }
+        setUnreadCountText();
     }
 
     /**
@@ -508,4 +539,55 @@ public class DynamicDashboardNav extends BaseActivity
         mGoogleApiClient.disconnect();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.dynamic_dashboard_menu, menu);
+        final MenuItem item = menu.findItem(R.id.notification);
+        View v = item.getActionView();
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onOptionsItemSelected(item);
+            }
+        });
+        unreadCountText = (TextView) v.findViewById(R.id.unread_count);
+        setUnreadCountText();
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.notification:
+                Intent intent = new Intent(this, NotificationActivity.class);
+                startActivity(intent);
+                break;
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    private void setUnreadCountText(){
+        int unreadCount = PreferenceManager.getDefaultSharedPreferences(this).getInt(MyFirebaseMessagingService.unreadPreference, 0);
+        if(unreadCount > 0 && unreadCountText != null) {
+            unreadCountText.setVisibility(View.VISIBLE);
+            unreadCountText.setText(unreadCount + "");
+        } else if(unreadCountText != null) {
+            unreadCountText.setVisibility(View.GONE);
+        }
+    }
+
+    private void clearNotifications(){
+        Realm realm = Realm.getDefaultInstance();
+        final RealmResults<NotificationObject> items = realm.where(NotificationObject.class).findAll();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                items.deleteAllFromRealm();
+            }
+        });
+    }
 }

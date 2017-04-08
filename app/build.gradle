@@ -54,6 +54,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-auth:9.4.0'
     compile 'com.google.android.gms:play-services-location:9.4.0'
     compile 'com.google.android.gms:play-services-appindexing:9.4.0'
+    compile 'com.google.android.gms:play-services-analytics:9.4.0'
     compile 'com.squareup.picasso:picasso:2.5.0'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.7.3'
     compile 'pub.devrel:easypermissions:0.1.5'

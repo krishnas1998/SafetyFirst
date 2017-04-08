@@ -2,13 +2,17 @@ package com.vikas.dtu.safetyfirst2;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,14 +46,19 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
+import com.vikas.dtu.safetyfirst2.mData.VersionInfo;
 import com.vikas.dtu.safetyfirst2.mDiscussion.DiscussionActivity;
 import com.vikas.dtu.safetyfirst2.mKnowIt.KnowItMain;
 import com.vikas.dtu.safetyfirst2.mLaws.ActivityLaws;
@@ -65,12 +74,19 @@ import java.util.HashMap;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
+import static android.R.attr.button;
+
 public class DynamicDashboardNav extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener, GoogleApiClient.OnConnectionFailedListener {
 
-
-
+    String VERSION_NAME, LATEST_VERSION_NAME;
+    int VERSION_CODE, LATEST_VERSION_CODE;
+    String APP_URL;
+    private FirebaseAnalytics mFirebaseAnalytics;
     //private boolean[] dashboardSection = new boolean[4];
     private ImageView mNewsImageView;
     private ImageView mDiscussionImageView;
@@ -107,7 +123,11 @@ public class DynamicDashboardNav extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dynamic_dashboard_nav);
+
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
         FirebaseMessaging.getInstance().subscribeToTopic("all"); //To receive notifications from api
+
 
         mNewsImageView = (ImageView)findViewById(R.id.imageView4) ;
         mDiscussionImageView = (ImageView)findViewById(R.id.imageView5);
@@ -253,6 +273,47 @@ public class DynamicDashboardNav extends BaseActivity
         setInstanceId();
         FirebaseMessaging.getInstance().subscribeToTopic("all"); //To receive notifications from api
         Log.e("Instance ID", FirebaseInstanceId.getInstance().getToken());
+
+        getVersionInfo();
+
+        if(isNetworkConnected()) {
+            getLatestVersionInfo();
+
+            if(VERSION_CODE < LATEST_VERSION_CODE){
+               /* AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setMessage("An Update is avaialble. Update Now?");
+                        alertDialogBuilder.setPositiveButton("yes",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface arg0, int arg1) {
+                                        try {
+                                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(APP_URL)));
+                                        } catch (android.content.ActivityNotFoundException anfe) {
+                                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(APP_URL)));
+                                        }
+                                    }
+                                });
+
+                alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });*/
+/*
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setMessage("Test")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+
+                                    }
+                                });
+
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();*/
+            }
+        }
     }
 
     private void setInstanceId() {
@@ -429,13 +490,19 @@ public class DynamicDashboardNav extends BaseActivity
     }
 
     public void startNews(View view) {
-      //  if (isNetworkConnected()) {
+        // [START custom_event]
+        Bundle params = new Bundle();
+        params.putString("from_dashboard", "News");
+        params.putString("activity", "News");
+        mFirebaseAnalytics.logEvent("activity_selected", params);
+// [END custom_event]
+        if (isNetworkConnected()) {
             Intent intent = new Intent(this, NewsActivity.class);
-      //      startActivity(intent);
-     //   } else {
-          //  Intent intent = new Intent(this, NoNetworkConnection.class);
             startActivity(intent);
-     //   }
+        } else {
+            Intent intent = new Intent(this, NoNetworkConnection.class);
+            startActivity(intent);
+        }
 
 
 
@@ -443,22 +510,42 @@ public class DynamicDashboardNav extends BaseActivity
 
     public void startDiscussion(View view) {
 
-       // if (isNetworkConnected()) {
+        // [START custom_event]
+        Bundle params = new Bundle();
+        params.putString("from_dashboard", "Discussion");
+        params.putString("activity", "discussion");
+        mFirebaseAnalytics.logEvent("activity_selected", params);
+// [END custom_event]
+
+
+        if (isNetworkConnected()) {
             Intent intent = new Intent(this, DiscussionActivity.class);
-       //     startActivity(intent);
-     //   } else {
-     //       Intent intent = new Intent(this, NoNetworkConnection.class);
             startActivity(intent);
-      //  }
+        } else {
+            Intent intent = new Intent(this, NoNetworkConnection.class);
+            startActivity(intent);
+        }
 
     }
 
     public void startKnowIt(View view) {
+        // [START custom_event]
+        Bundle params = new Bundle();
+        params.putString("from_dashboard", "Know It");
+        params.putString("activity", "Know It");
+        mFirebaseAnalytics.logEvent("activity_selected", params);
+// [END custom_event]
         Intent intent = new Intent(this, KnowItMain.class);
         startActivity(intent);
     }
 
     public void startLaw(View view) {
+        // [START custom_event]
+        Bundle params = new Bundle();
+        params.putString("from_dashboard", "Laws");
+        params.putString("activity", "Laws");
+        mFirebaseAnalytics.logEvent("activity_selected", params);
+// [END custom_event]
         Intent intent = new Intent(this, ActivityLaws.class);
         startActivity(intent);
     }
@@ -587,6 +674,67 @@ public class DynamicDashboardNav extends BaseActivity
             @Override
             public void execute(Realm realm) {
                 items.deleteAllFromRealm();
+            }
+        });
+    }
+
+    private void getVersionInfo() {
+        VERSION_NAME = "";
+        VERSION_CODE = -1;
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            VERSION_NAME = packageInfo.versionName;
+            VERSION_CODE = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void getLatestVersionInfo(){
+         DatabaseReference versionRef;
+        versionRef = FirebaseDatabase.getInstance().getReference()
+                .child("versionInfo");
+        versionRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                VersionInfo versionInfo = dataSnapshot.getValue(VersionInfo.class);
+                System.out.println("version name: " + versionInfo.getVersionName());
+                System.out.println("version code: " + versionInfo.getVersionCode());
+                System.out.println("url: " + versionInfo.getAppURL());
+
+                LATEST_VERSION_NAME = versionInfo.getVersionName();
+                LATEST_VERSION_CODE = versionInfo.getVersionCode();
+                APP_URL = versionInfo.getAppURL();
+
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                VersionInfo versionInfo = dataSnapshot.getValue(VersionInfo.class);
+                System.out.println("version name: " + versionInfo.getVersionName());
+                System.out.println("version code: " + versionInfo.getVersionCode());
+                System.out.println("url: " + versionInfo.getAppURL());
+
+                LATEST_VERSION_NAME = versionInfo.getVersionName();
+                LATEST_VERSION_CODE = versionInfo.getVersionCode();
+                APP_URL = versionInfo.getAppURL();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
     }
